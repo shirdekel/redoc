@@ -312,7 +312,7 @@ convert_docx_to_md <- function(docx,
     filter_opts <- character(0)
     from_format <- "docx"
   }
-  other_opts <- c("--standalone", "--eol=lf")
+  other_opts <- c("--standalone", "--eol=lf", "--atx-headers")
   opts <- c(filter_opts, track_opts, wrap_opts, other_opts)
   md_tmp <- tempfile(fileext = ".md")
   pandoc_convert(docx,
