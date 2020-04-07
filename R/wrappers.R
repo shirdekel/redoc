@@ -69,6 +69,16 @@
 #'     label = "citation",
 #'     regex = "(?:@\\w+|\\[.*?-?@\\w+.*?\\](?!\\[\\(\\{))",
 #'     type = "inline")
+prefix <- "redoc-"
+spanwrap <- function(text, id, class = "redoc") {
+  #  stri_join("[\n", text, "\n]{class=\"", class, "\" id=\"", id, "\"}")
+  stringi::stri_join("<span class=\"", class, "\" id=\"", id, "\">", text, "</span>")
+}
+stri_lineno_first_fixed <- function(text, pattern) {
+  loc <- stringi::stri_locate_first_fixed(text, pattern)
+  pre <- stringi::stri_sub(text, from = 1L, to = loc[, 1] - 1)
+  as.integer(redoc:::stri_count_lines(pre))
+}
 
 make_wrapper <- function(label, regex, type  = c("block", "inline")) {
   type <- match.arg(type)
@@ -81,23 +91,35 @@ make_wrapper <- function(label, regex, type  = c("block", "inline")) {
 
     counter <- 0
     chunks <- lapply(
-      stri_extract_all_regex(rmd$text, regex)[[1]],
+      stringi::stri_extract_all_regex(rmd$text, regex)[[1]],
       function(x) {
         counter <<- counter + 1
         list(code = x,
              label = label,
              type = type,
-             name = stri_join(prefix, label, "-", counter))
+             name = stringi::stri_join(prefix, label, "-", counter))
       })
 
     if (length(chunks) == 0 || (length(chunks) == 1 && any(is.na(chunks[[1]]))))
       return(rmd)
 
+    match_n <- function(text, pattern, n){
+      pre <- stringr::str_match(text, pattern = paste0("(?s)(?:.*?(", pattern, ")){", n, "}"))[,1]
+      as.integer(redoc:::stri_count_lines(pre))
+    }
+
+    replace_n <- function(text, pattern, replacement, n){
+      pre <- stringr::str_locate_all(text,
+                                  pattern = paste0("(?s)(?:.*?(", pattern, ")){", n, "}"))[,1]
+      as.integer(redoc:::stri_count_lines(pre))
+    }
+
     for (i in seq_along(chunks)) {
-      chunks[[i]]$lineno <- stri_lineno_first_fixed(rmd$text, chunks[[i]]$code)
-      rmd$text <- stri_replace_first_fixed(rmd$text,
+      i=1
+      chunks[[i]]$lineno <- match_n(text = rmd$text, pattern = chunks[[i]]$code, n = i)
+      rmd$text <- stringi::stri_replace_first_fixed(rmd$text,
                                            chunks[[i]]$code,
-                                           container_wrapper(
+                                           replacement = container_wrapper(
                                              chunks[[i]]$code,
                                              chunks[[i]]$name)
                                            )
