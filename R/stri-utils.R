@@ -87,3 +87,16 @@ remove_extra_newlines <- function(text) {
 last <- function(x) {
   x[length(x)]
 }
+
+match_n <- function(text, pattern, n){
+  pre <- stringr::str_match(text, pattern = paste0("(?s)(?:.*?(", pattern, ")){", n, "}"))[,1]
+  as.integer(stri_count_lines(pre))
+}
+
+replace_n <- function(text, pattern, replacement, n){
+  loc <- stringr::str_locate_all(text,
+                                 pattern = paste0("(?s)(?:(", pattern, "))"))[[1]]
+  loc_n <- loc[n,]
+  stringr::str_sub(text, loc_n[1], loc_n[2]) <- replacement
+  return(text)
+}
