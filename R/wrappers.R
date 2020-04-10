@@ -94,13 +94,13 @@ make_wrapper <- function(label, regex, type  = c("block", "inline")) {
       return(rmd)
 
     for (i in seq_along(chunks)) {
-      chunks[[i]]$lineno <- match_n(text = rmd$text, pattern = chunks[[i]]$code, n = i)
-      rmd$text <- replace_n(rmd$text,
-                            chunks[[i]]$code,
+      chunks[[i]]$lineno <- match_n(text = rmd$text,
+                                    pattern = chunks[[i]]$code)
+      rmd$text <- replace_n(text = rmd$text,
+                            pattern = chunks[[i]]$code,
                             replacement = container_wrapper(
                               chunks[[i]]$code,
-                              chunks[[i]]$name),
-                            n = i)
+                              chunks[[i]]$name))
     }
     rmd$code <- c(rmd$code, chunks)
     rmd

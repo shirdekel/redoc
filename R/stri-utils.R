@@ -88,15 +88,13 @@ last <- function(x) {
   x[length(x)]
 }
 
-match_n <- function(text, pattern, n){
-  pre <- stringr::str_match(text, pattern = paste0("(?s)(?:.*?(", pattern, ")){", n, "}"))[,1]
+match_n <- function(text, pattern){
+  pre <- stringr::str_match(text, pattern = paste0('(?s).*?(?<!">)(', Hmisc::escapeRegex(pattern),')(?!;|\\]|<\\/span>)'))[,1]
   as.integer(stri_count_lines(pre))
 }
 
-replace_n <- function(text, pattern, replacement, n){
-  loc <- stringr::str_locate_all(text,
-                                 pattern = paste0("(?s)(?:(", pattern, "))"))[[1]]
-  loc_n <- loc[n,]
-  stringr::str_sub(text, loc_n[1], loc_n[2]) <- replacement
+replace_n <- function(text, pattern, replacement){
+  loc <- stringr::str_locate(text, pattern = paste0('(?s)(?<!">)(', Hmisc::escapeRegex(pattern),')(?!;|\\]|<\\/span>)'))
+  stringr::str_sub(text, loc[1], loc[2]) <- replacement
   return(text)
 }
